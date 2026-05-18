@@ -16,14 +16,19 @@ class UserBase(BaseModel):
         description="User full name"
     )
 
-    role: Literal["admin", "user"]
 
 
 # =========================
 # Create User
 # =========================
 
-class UserCreate(UserBase):
+class UserCreate(BaseModel):
+    """User creation schema. Role is automatically set to 'user'."""
+    name: str = Field(
+        min_length=2,
+        max_length=100,
+        description="User full name"
+    )
     password: str = Field(
         min_length=8,
         max_length=72,
@@ -41,7 +46,7 @@ class UserCreate(UserBase):
 class UserOut(UserBase):
     id: UUID
     is_active: bool
-
+    role: Literal["admin", "user"]
     created_at: datetime
     updated_at: datetime
 
@@ -57,6 +62,7 @@ class UserOut(UserBase):
 # =========================
 
 class UserUpdate(BaseModel):
+    """User update schema. Role cannot be changed; it remains as assigned."""
     name: str | None = Field(
         default=None,
         min_length=2,
@@ -68,7 +74,5 @@ class UserUpdate(BaseModel):
         min_length=8,
         max_length=72
     )
-
-    role: Literal["admin", "user"] | None = None
 
     is_active: bool | None = None
