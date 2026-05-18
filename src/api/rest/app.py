@@ -3,8 +3,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.data.clients.postgres_client import get_or_create_engine
-from src.api.rest.routes import health
 from src.api.rest.routes.health import router as health_router 
+from src.api.rest.routes.user import router as user_router
+from src.api.rest.routes.auth import router as auth_router
 
 
 @asynccontextmanager
@@ -30,4 +31,6 @@ app.add_middleware(
 async def root():
     return {"message": "Welcome to the Hall Booking System API!"}
 
-app.include_router(health.router)
+app.include_router(health_router)
+app.include_router(user_router)
+app.include_router(auth_router)
