@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.exceptions import InvalidCredentialsException
 from src.data.repositories.user_repository import UserRepository
 from src.schemas.auth_schema import Token
+from src.schemas.user_schemas import UserOut
 from src.utils.jwt import create_access_token
 from src.utils.security import verify_password
 
@@ -25,4 +26,8 @@ class AuthService:
         access_token = create_access_token(
             data={"user_id": str(user.id), "role": user.role}
         )
-        return Token(access_token=access_token, token_type="bearer")
+        return Token(
+            access_token=access_token,
+            token_type="bearer",
+            user=UserOut.model_validate(user),
+        )

@@ -1,13 +1,13 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.api.middleware.error_handler import register_exception_handlers
+from src.config.settings import settings
 from src.data.clients.postgres_client import get_or_create_engine
 from src.api.rest.routes.health import router as health_router 
 from src.api.rest.routes.user import router as user_router
 from src.api.rest.routes.auth import router as auth_router
-from src.api.middleware.error_handler import register_exception_handlers
 from src.data.seed import seed_admin_user
 
 
@@ -28,7 +28,7 @@ register_exception_handlers(app)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[settings.FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]

@@ -3,10 +3,13 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from src.schemas.user_schemas import UserOut
+
 
 class Token(BaseModel):
     access_token: str
     token_type: str
+    user: UserOut
 
 
 class TokenData(BaseModel):
