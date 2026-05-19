@@ -47,3 +47,14 @@ async def me(
 ) -> UserOut:
     service = UserService(session)
     return await service.get_user(token_data.user_id)
+
+
+@router.post("/logout")
+async def logout(response: Response) -> dict:
+    """Logout endpoint that clears the access_token cookie."""
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+        samesite="lax",
+    )
+    return {"message": "Logged out successfully"}
