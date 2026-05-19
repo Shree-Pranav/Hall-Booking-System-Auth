@@ -1,58 +1,55 @@
-from __future__ import annotations
+"""Exception handlers for FastAPI application."""
 
-import logging
-from typing import Callable
-
-from fastapi import Request, Response
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from src.core.exceptions import BaseAppException
 
 
-logger = logging.getLogger(__name__)
+ApplicationException = BaseAppException
 
 
-async def global_exception_handler(request: Request, exc: Exception) -> Response:
-    """Global exception handler that converts all exceptions to JSON responses."""
-
-    # Handle custom application exceptions
-    if isinstance(exc, BaseAppException):
-        logger.warning(
-            f"Application exception: {exc.error_code} - {exc.message}",
-            extra={"path": request.url.path, "status_code": exc.status_code},
-        )
-        return JSONResponse(
-            status_code=exc.status_code,
-            content=exc.to_dict(),
-        )
-
-    # Handle validation errors from Pydantic
-    if isinstance(exc, RequestValidationError):
-        logger.warning(
-            f"Validation error on {request.url.path}",
-            extra={"errors": exc.errors()},
-        )
-        return JSONResponse(
-            status_code=422,
-            content={
-                "error": "VALIDATION_ERROR",
-                "message": "Request validation failed",
-                "details": {"validation_errors": exc.errors()},
-            },
-        )
-
-    # Handle all other exceptions as 500 errors
-    logger.error(
-        f"Unhandled exception: {exc.__class__.__name__}",
-        exc_info=exc,
-        extra={"path": request.url.path},
-    )
+async def application_exception_handler(request: Request, exc: ApplicationException):
+    """Handle custom application exceptions."""
     return JSONResponse(
-        status_code=500,
+        status_code=exc.status_code,
         content={
-            "error": "INTERNAL_SERVER_ERROR",
-            "message": "An internal server error occurred",
-            "details": {},
+            "detail": exc.message,
+            "error_type": exc.__class__.__name__,
         },
     )
+
+
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": "Validation failed",
+            "errors": [
+                {
+                    "field": " -> ".join(str(location) for location in err["loc"]),
+                    "message": err["msg"],
+                    "type": err["type"],
+                }
+                for err in exc.errors()
+            ],
+        },
+    )
+
+
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle unexpected exceptions."""
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": "An unexpected error occurred",
+            "error_type": "InternalServerError",
+        },
+    )
+
+
+def register_exception_handlers(app: FastAPI) -> None:
+    app.add_exception_handler(ApplicationException, application_exception_handler)
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    app.add_exception_handler(Exception, general_exception_handler)
