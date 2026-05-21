@@ -9,13 +9,16 @@ from src.config.settings import settings
 from src.core.services.auth_service import AuthService
 from src.core.services.user_service import UserService
 from src.data.clients.postgres_client import get_db_session
+from src.observability.logging.logger import get_logger, log_function
 from src.schemas.auth_schema import Token, TokenData
 from src.schemas.user_schemas import UserOut
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+logger = get_logger(__name__)
 
 
 @router.post("/login", response_model=Token)
+@log_function(logger)
 async def login(
     response: Response,
     user_credentials: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -41,6 +44,7 @@ async def login(
 
 
 @router.get("/me", response_model=UserOut)
+@log_function(logger)
 async def me(
     token_data: Annotated[TokenData, Depends(verify_token)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -50,6 +54,7 @@ async def me(
 
 
 @router.post("/logout")
+@log_function(logger)
 async def logout(response: Response) -> dict:
     """Logout endpoint that clears the access_token cookie."""
     response.delete_cookie(

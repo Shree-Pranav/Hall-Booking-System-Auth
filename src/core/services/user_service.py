@@ -9,10 +9,12 @@ from src.core.exceptions import (
     UserNotFoundException,
 )
 from src.data.repositories.user_repository import UserRepository
+from src.observability.logging.logger import instrument_class_methods
 from src.schemas.user_schemas import UserCreate, UserOut, UserUpdate
 from src.utils.security import hash_password
 
 
+@instrument_class_methods
 class UserService:
     def __init__(self, db_session: AsyncSession) -> None:
         self.repository = UserRepository(db_session)

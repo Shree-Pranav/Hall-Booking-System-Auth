@@ -6,8 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.data.models.postgres.user import User
+from src.observability.logging.logger import instrument_class_methods
 
 
+@instrument_class_methods
 class UserRepository:
 	def __init__(self, db_session: AsyncSession) -> None:
 		self.db_session = db_session

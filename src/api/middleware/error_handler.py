@@ -5,13 +5,16 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from src.core.exceptions import BaseAppException
+from src.observability.logging.logger import get_logger
 
 
 ApplicationException = BaseAppException
+logger = get_logger(__name__)
 
 
 async def application_exception_handler(request: Request, exc: ApplicationException):
     """Handle custom application exceptions."""
+    logger.error("Application exception handled: %s", exc.message)
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -22,6 +25,7 @@ async def application_exception_handler(request: Request, exc: ApplicationExcept
 
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    logger.error("Validation exception handled")
     return JSONResponse(
         status_code=422,
         content={
@@ -40,6 +44,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle unexpected exceptions."""
+    logger.exception("Unhandled exception intercepted")
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={

@@ -9,17 +9,22 @@ from src.api.rest.routes.health import router as health_router
 from src.api.rest.routes.user import router as user_router
 from src.api.rest.routes.auth import router as auth_router
 from src.data.seed import seed_admin_user
+from src.observability.logging.logger import configure_logging, get_logger, log_function
+
+
+configure_logging()
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Starting up the application...")
+    logger.info("Starting up the application")
     engine = await get_or_create_engine()
     
     
     yield
     await engine.dispose()
-    print("Shutting down the application...")
+    logger.info("Shutting down the application")
 
 
 app = FastAPI(title="Hall Booking System Auth API", lifespan=lifespan)
@@ -35,6 +40,7 @@ app.add_middleware(
 )
 
 @app.get("/")
+@log_function(logger)
 async def root():
     return {"message": "Welcome to the Hall Booking System API!"}
 
