@@ -31,15 +31,6 @@ async def login(
         password=user_credentials.password,
     )
 
-    response.set_cookie(
-        key="access_token",
-        value=login_result.access_token,
-        httponly=True,
-        samesite="lax",
-        secure=False,
-        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
-    )
     return login_result
 
 
@@ -55,11 +46,6 @@ async def me(
 
 @router.post("/logout")
 @log_function(logger)
-async def logout(response: Response) -> dict:
-    """Logout endpoint that clears the access_token cookie."""
-    response.delete_cookie(
-        key="access_token",
-        path="/",
-        samesite="lax",
-    )
+async def logout() -> dict:
+    """Logout endpoint retained for client symmetry."""
     return {"message": "Logged out successfully"}

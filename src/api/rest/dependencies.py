@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 from uuid import UUID
 
-from fastapi import Cookie
+from fastapi import Header
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,11 +24,15 @@ async def db_session_dependency() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def verify_token(
-    access_token: str | None = Cookie(default=None, alias="access_token"),
+    authorization: str | None = Header(default=None, alias="Authorization"),
 ) -> TokenData:
     logger.info("Entering verify_token")
+    if not authorization or not authorization.startswith("Bearer "):
+        raise TokenException("Missing or invalid authorization header")
+
+    access_token = authorization.removeprefix("Bearer ").strip()
     if not access_token:
-        raise TokenException("Missing access token cookie")
+        raise TokenException("Missing access token")
 
     try:
         payload = jwt.decode(
